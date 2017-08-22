@@ -1,0 +1,196 @@
+[{
+	"name": "power",
+	"code": "32A650AF",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "tv",
+	"code": "32A6C23D",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "computer",
+	"code": "32A622DD",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "hdmi",
+	"code": "32A6827D",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "video",
+	"code": "32A6E21D",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "digit1",
+	"code": "32A6807F",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "digit2",
+	"code": "32A640BF",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "digit3",
+	"code": "32A6C03F",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "digit4",
+	"code": "32A620DF",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "digit5",
+	"code": "32A6A05F",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "digit6",
+	"code": "32A6609F",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "digit7",
+	"code": "32A6E01F",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "digit8",
+	"code": "32A610EF",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "digit9",
+	"code": "32A6906F",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "digit0",
+	"code": "32A6A25D",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "lookback",
+	"code": "32A648B7",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "list",
+	"code": "32A61AE5",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "volinc",
+	"code": "32A6A857",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "voldec",
+	"code": "32A638C7",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "mute",
+	"code": "32A6F00F",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "setup",
+	"code": "32A600FF",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "channelinc",
+	"code": "32A6F807",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "channeldec",
+	"code": "32A67887",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "display",
+	"code": "32A602FD",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "inputsource",
+	"code": "32A630CF",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "up",
+	"code": "32A6D02F",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "down",
+	"code": "32A6708F",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "left",
+	"code": "32A608F7",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "right",
+	"code": "32A68877",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "ok",
+	"code": "32A6B04F",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "menu",
+	"code": "32A6EC13",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "return",
+	"code": "32A6B847",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "fastpre",
+	"code": "32A6CA35",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "fastforward",
+	"code": "32A6DA25",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "home",
+	"code": "32A66897",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "pre",
+	"code": "32A6EA15",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "playpause",
+	"code": "32A6C837",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "stop",
+	"code": "32A628D7",
+	"bits": "32",
+	"protocol": "NEC"
+}, {
+	"name": "forward",
+	"code": "32A62AD5",
+	"bits": "32",
+	"protocol": "NEC"
+}]
