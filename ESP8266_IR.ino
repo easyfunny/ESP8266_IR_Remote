@@ -17,7 +17,11 @@
 #ifdef _OTA_
 #include <ArduinoOTA.h>
 #endif
+namespace {
 
+const char* HOSTNAME = "ESP8266_IR";
+
+}
 
 WiFiManager wifiManager;
 
@@ -30,8 +34,8 @@ int SERIAL_SPEED = 115200;
 int RECV_PIN = 0; //1:tx //an IR detector/demodulator is connected to GPIO  //D1
 int SEND_PIN = 3; //3:rx // D2 paired with a 1.6 Ohm resistor
 
-String CONFIG_PATH = "config.json";
-String CONFIG_BACKUP_PATH = "config.bak";
+String CONFIG_PATH = "/config.json";
+String CONFIG_BACKUP_PATH = "/config.bak";
 
 File fsUploadFile;
 
@@ -422,12 +426,13 @@ void setup(void) {
 
   Serial.println("v5.2");
 
-  WiFi.hostname("ESP8266_IR");
-  wifiManager.autoConnect("ESP8266_IR", "1234567890");
+  WiFi.hostname(HOSTNAME);
+  wifiManager.autoConnect(HOSTNAME, "1234567890");
 
 #ifdef _OTA_
 //OTA
-
+  ArduinoOTA.setHostname(HOSTNAME);
+  ArduinoOTA.setPort(8266);
   // No authentication by default
   // ArduinoOTA.setPassword((const char *)"irsvr");
 
@@ -479,7 +484,7 @@ void setup(void) {
   irrecv.enableIRIn();
 
 
-  if (mdns.begin("irsvr", WiFi.localIP())) {
+  if (mdns.begin(HOSTNAME, WiFi.localIP())) {
     Serial.println("MDNS responder started");
   }
 }
