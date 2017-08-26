@@ -10,42 +10,36 @@
 #include <FS.h>
 #include <WiFiUdp.h>
 
-
 #define _OTA_
 //#define SerialOn
 
 #ifdef _OTA_
 #include <ArduinoOTA.h>
 #endif
+
 namespace {
-
-const char* HOSTNAME = "ESP8266_IR";
-
+const char* HOSTNAME = "esp8266-ir";
 }
-
-WiFiManager wifiManager;
-
-
-MDNSResponder mdns;
-ESP8266WebServer server(80);
-
 int SERIAL_SPEED = 115200;
-
+int LED_PIN = 1;
 int RECV_PIN = 0; //1:tx //an IR detector/demodulator is connected to GPIO  //D1
 int SEND_PIN = 3; //3:rx // D2 paired with a 1.6 Ohm resistor
-
 String CONFIG_PATH = "/config.json";
 String CONFIG_BACKUP_PATH = "/config.bak";
+
+WiFiManager wifiManager;
+MDNSResponder mdns;
+ESP8266WebServer server(80);
 
 File fsUploadFile;
 
 IRrecv irrecv(RECV_PIN);
 IRsend irsend(SEND_PIN);
 
-decode_results  results1;        // Somewhere to store the results
-decode_results  results;        // Somewhere to store the results
+decode_results results1;        // Somewhere to store the results
+decode_results results;        // Somewhere to store the results
 
-unsigned long StrToUL (String str) {
+unsigned long StrToUL(String str) {
   char tarray[15];
   str.toCharArray(tarray, sizeof(tarray));
   unsigned long code = strtoul(tarray, NULL, 10);
@@ -62,7 +56,7 @@ unsigned long combineBytes(int a1, int a2, int a3, int a4) {
 }
 
 int flipBits(unsigned char b) {
-  return ( (b * 0x0202020202ULL & 0x010884422010ULL) % 1023);
+  return ((b * 0x0202020202ULL & 0x010884422010ULL) % 1023);
 }
 
 void dump(int a1, int a2, int a3) {
@@ -73,11 +67,28 @@ void dump(int a1, int a2, int a3) {
   Serial.println(a3, HEX);
 }
 
+void setOnBoardLedOn() {
+#ifndef SerialOn
+  digitalWrite(LED_PIN, LOW); // Turn the LED on.
+#endif
+}
+
+void setOnBoardLedOff() {
+#ifndef SerialOn
+  digitalWrite(LED_PIN, HIGH); // Turn the LED off.
+#endif
+}
+
+
 void handleRoot() {
-  server.send(200, "text/html", "Please specify command! Form: /ir?code=xxx&bits=xx&protocol=x");
+  server.send(200, "text/html",
+      "Please specify command! Form: /ir?code=xxx&bits=xx&protocol=x");
 }
 
 void handleIr() {
+
+  setOnBoardLedOn();
+
   String codestring = server.arg("code");
   String protocol = server.arg("protocol");
   String bitsstring = server.arg("bits");
@@ -102,10 +113,8 @@ void handleIr() {
   }
   int bits = bitsstring.toInt();
 
-
   if ((obc != "") && (deviceCode != "")) {
     //convert OBC & deviceCode to hex CodeString
-
 
     int iDeviceCode = StrToUL(deviceCode);
     int iDeviceCodeLSB = flipBits(iDeviceCode);
@@ -134,14 +143,16 @@ void handleIr() {
     Serial.println(iOBCLSB, HEX);
     Serial.println("----");
     if (protocol == "Samsung") {
-      code = combineBytes(iDeviceCodeLSB, iSubDeviceCodeLSB, iOBCLSB, iOBCLSB_INV);
+      code = combineBytes(iDeviceCodeLSB, iSubDeviceCodeLSB, iOBCLSB,
+          iOBCLSB_INV);
     } else if (protocol == "NEC" || protocol == "NECx2") {
-      code = combineBytes(iDeviceCodeLSB, iDeviceCodeLSB_INV, iOBCLSB, iOBCLSB_INV);
+      code = combineBytes(iDeviceCodeLSB, iDeviceCodeLSB_INV, iOBCLSB,
+          iOBCLSB_INV);
     } else if (protocol == "RC6") {
       /*NOT TESTED*/
       code = combineBytes(0, 0, iDeviceCode, iOBC);
       bits = 20;
-    }  else if (protocol == "RC5") {
+    } else if (protocol == "RC5") {
       /*NOT TESTED*/
       /*control=1,device=5,command=6*/
       rc5_control_bit = abs(rc5_control_bit - 1);
@@ -153,7 +164,7 @@ void handleIr() {
       /*NOT TESTED*/
       code = combineBytes(0, 0, iDeviceCodeLSB, iOBCLSB);
       bits = 16;
-    }  else if (protocol == "Sony") {
+    } else if (protocol == "Sony") {
       /*NOT TESTED & highly suspect, need to seem some example codes*/
       code = iOBCLSB;
       if (subDeviceCode != "") {
@@ -168,7 +179,7 @@ void handleIr() {
         bits = 12;
         code = code << 5 + iDeviceCodeLSB;
       }
-    } else  {
+    } else {
       code = 0;
       server.send(404, "text/html", "Protocol not implemented for OBC!");
     }
@@ -185,43 +196,34 @@ void handleIr() {
     if (protocol == "NEC") {
       server.send(200, "text/html", webOutput);
       irsend.sendNEC(code, bits);
-    }
-    else if (protocol == "Sony") {
+    } else if (protocol == "Sony") {
       server.send(200, "text/html", webOutput);
       irsend.sendSony(code, bits);
-    }
-    else if (protocol == "Whynter") {
+    } else if (protocol == "Whynter") {
       server.send(200, "text/html", webOutput);
       irsend.sendWhynter(code, bits);
-    }
-    else if (protocol == "LG") {
+    } else if (protocol == "LG") {
       server.send(200, "text/html", webOutput);
       irsend.sendLG(code, bits);
-    }
-    else if (protocol == "RC5") {
+    } else if (protocol == "RC5") {
       server.send(200, "text/html", webOutput);
       irsend.sendRC5(code, bits);
-    }
-    else if (protocol == "RC6") {
+    } else if (protocol == "RC6") {
       server.send(200, "text/html", webOutput);
       irsend.sendRC6(code, bits);
-    }
-    else if (protocol == "DISH") {
+    } else if (protocol == "DISH") {
       server.send(200, "text/html", webOutput);
       irsend.sendDISH(code, bits);
-    }
-    else if (protocol == "SharpRaw") {
+    } else if (protocol == "SharpRaw") {
       server.send(200, "text/html", webOutput);
       irsend.sendSharpRaw(code, bits);
-    }
-    else if (protocol == "Samsung") {
+    } else if (protocol == "Samsung") {
       server.send(200, "text/html", webOutput);
       irsend.sendSAMSUNG(code, bits);
-    }
-    else {
+    } else {
       server.send(404, "text/html", "Protocol not implemented!");
     }
-  }  else if (pronto != "") {
+  } else if (pronto != "") {
     //pronto code
     //blocks of 4 digits in hex
     //preample is 0000 FREQ LEN1 LEN2
@@ -235,7 +237,7 @@ void handleIr() {
     int out_len = ((len - 4) / spacing) - 3;
     uint16_t prontoCode[out_len];
     unsigned long timeperiod;
-    unsigned long multiplier = .241246 ;
+    unsigned long multiplier = .241246;
 
     int pos = 0;
     unsigned long hz;
@@ -255,7 +257,8 @@ void handleIr() {
       pos += spacing; //LEN2
       delay(0);
       for (int i = 0; i < out_len; i++) {
-        prontoCode[i] = (strtol(pronto.substring(pos, pos + 4).c_str(), NULL, 16) * timeperiod) + 0.5;
+        prontoCode[i] = (strtol(pronto.substring(pos, pos + 4).c_str(), NULL,
+            16) * timeperiod) + 0.5;
         pos += spacing;
       }
       //sendRaw
@@ -268,6 +271,8 @@ void handleIr() {
   } else {
     server.send(404, "text/html", "Missing code or bits!");
   }
+
+  setOnBoardLedOff();
 }
 
 void handleNotFound() {
@@ -346,8 +351,8 @@ void handleDeleteConfig() {
     Serial.println("FILE DELETED");
   }
   server.send(200, "text/plain", callback + "(\"File Deleted\")");
-};
-
+}
+;
 
 void learnHandler() {
   Serial.println("In Learning Handling");
@@ -357,29 +362,59 @@ void learnHandler() {
   { // Grab an IR code
     // dumpInfo(&results);           // Output the results
     switch (results.decode_type) {
-      default:
-      case UNKNOWN:      proto = ("UNKNOWN");       break ;
-      case NEC:          proto = ("NEC");           break ;
-      case SONY:         proto = ("Sony");          break ;
-      case RC5:          proto = ("RC5");           break ;
-      case RC6:          proto = ("RC6");           break ;
-      case DISH:         proto = ("DISH");          break ;
-      case SHARP:        proto = ("SHARP");         break ;
-      case JVC:          proto = ("JVC");           break ;
-      case SANYO:        proto = ("Sanyo");         break ;
-      case MITSUBISHI:   proto = ("MITSUBISHI");    break ;
-      case SAMSUNG:      proto = ("Samsung");       break ;
-      case LG:           proto = ("LG");            break ;
-      case WHYNTER:      proto = ("Whynter");       break ;
+    default:
+    case UNKNOWN:
+      proto = ("UNKNOWN");
+      break;
+    case NEC:
+      proto = ("NEC");
+      break;
+    case SONY:
+      proto = ("Sony");
+      break;
+    case RC5:
+      proto = ("RC5");
+      break;
+    case RC6:
+      proto = ("RC6");
+      break;
+    case DISH:
+      proto = ("DISH");
+      break;
+    case SHARP:
+      proto = ("SHARP");
+      break;
+    case JVC:
+      proto = ("JVC");
+      break;
+    case SANYO:
+      proto = ("Sanyo");
+      break;
+    case MITSUBISHI:
+      proto = ("MITSUBISHI");
+      break;
+    case SAMSUNG:
+      proto = ("Samsung");
+      break;
+    case LG:
+      proto = ("LG");
+      break;
+    case WHYNTER:
+      proto = ("Whynter");
+      break;
       // case AIWA_RC_T501: Serial.print("AIWA_RC_T501");  break ;
-      case PANASONIC:    proto = ("PANASONIC");     break ;
+    case PANASONIC:
+      proto = ("PANASONIC");
+      break;
     }
     //results->value
     //Serial.print(results->value, HEX);
 
     Serial.println("Here");           // Blank line between entries
     irrecv.resume();              // Prepare for the next value
-    String output = callback + "({protocol:\"" + proto + "\", value:\"" + String((unsigned long)results.value, HEX) + "\", bits:\"" + String(results.bits) + "\"})";
+    String output = callback + "({protocol:\"" + proto + "\", value:\""
+        + String((unsigned long) results.value, HEX) + "\", bits:\""
+        + String(results.bits) + "\"})";
     Serial.println(output);
     server.send(200, "text/html", output);
   }
@@ -396,19 +431,22 @@ void handleFileUpload() { // upload a new file to the SPIFFS
   HTTPUpload& upload = server.upload();
   if (upload.status == UPLOAD_FILE_START) {
     String filename = upload.filename;
-    if (!filename.startsWith("/")) filename = "/" + filename;
-    Serial.print("handleFileUpload Name: "); Serial.println(filename);
+    if (!filename.startsWith("/"))
+      filename = "/" + filename;
+    Serial.print("handleFileUpload Name: ");
+    Serial.println(filename);
 
-    fsUploadFile = SPIFFS.open(filename, "w");            // Open the file for writing in SPIFFS (create if it doesn't exist)
+    fsUploadFile = SPIFFS.open(filename, "w"); // Open the file for writing in SPIFFS (create if it doesn't exist)
     filename = String();
   } else if (upload.status == UPLOAD_FILE_WRITE) {
     if (fsUploadFile)
       fsUploadFile.write(upload.buf, upload.currentSize); // Write the received bytes to the file
   } else if (upload.status == UPLOAD_FILE_END) {
-    if (fsUploadFile) {                                   // If the file was successfully created
-      fsUploadFile.close();                               // Close the file again
-      Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
-      server.sendHeader("Location", "/success.html");     // Redirect the client to the success page
+    if (fsUploadFile) {                  // If the file was successfully created
+      fsUploadFile.close();                              // Close the file again
+      Serial.print("handleFileUpload Size: ");
+      Serial.println(upload.totalSize);
+      server.sendHeader("Location", "/success.html"); // Redirect the client to the success page
       server.send(303);
     } else {
       server.send(500, "text/plain", "500: couldn't create file");
@@ -418,10 +456,14 @@ void handleFileUpload() { // upload a new file to the SPIFFS
 }
 
 void setup(void) {
-  irsend.begin();
 #ifdef SerialOn
   Serial.begin(SERIAL_SPEED, SERIAL_8N1, SERIAL_TX_ONLY);
 #endif
+#ifndef SerialOn
+  pinMode(LED_PIN, OUTPUT);
+  setOnBoardLedOn();
+#endif
+  irsend.begin();
   SPIFFS.begin();
 
   Serial.println("v5.2");
@@ -436,12 +478,12 @@ void setup(void) {
   // No authentication by default
   // ArduinoOTA.setPassword((const char *)"irsvr");
 
-
   ArduinoOTA.onStart([]() {
     Serial.println("Start");
   });
   ArduinoOTA.onEnd([]() {
     Serial.println("\nEnd");
+    ESP.restart();
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
     Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
@@ -467,8 +509,8 @@ void setup(void) {
 
   server.on("/saveConfig", handleSaveConfig);
   server.on("/deleteConfig", handleDeleteConfig);
-  server.onFileUpload(handleFileUpload   );
-  server.on("/upload", HTTP_POST, handleUploadRequest,    handleFileUpload   );
+  server.onFileUpload(handleFileUpload);
+  server.on("/upload", HTTP_POST, handleUploadRequest, handleFileUpload);
 
   server.serveStatic("/", SPIFFS, "/index.html");
   server.serveStatic("/index.html", SPIFFS, "/index.html");
@@ -483,48 +525,77 @@ void setup(void) {
   Serial.println("HTTP server started");
   irrecv.enableIRIn();
 
-
   if (mdns.begin(HOSTNAME, WiFi.localIP())) {
     Serial.println("MDNS responder started");
   }
+
+  setOnBoardLedOff();
 }
 
 void loop(void) {
+
   server.handleClient();
   mdns.update();
-
 #ifdef _OTA_
   ArduinoOTA.handle();
 #endif
 
   if (irrecv.decode(&results1)) {
-    if(results1.value==0xffffffff){
+    if (results1.value == 0xffffffff) {
       Serial.println("ffffffff recieved ignoring");
     } else {
       String proto = "";
-        { // Grab an IR code
-          // dumpInfo(&results);           // Output the results
-          switch (results1.decode_type) {
-            default:
-            case UNKNOWN:      proto = ("UNKNOWN");       break ;
-            case NEC:          proto = ("NEC");           break ;
-            case SONY:         proto = ("Sony");          break ;
-            case RC5:          proto = ("RC5");           break ;
-            case RC6:          proto = ("RC6");           break ;
-            case DISH:         proto = ("DISH");          break ;
-            case SHARP:        proto = ("SHARP");         break ;
-            case JVC:          proto = ("JVC");           break ;
-            case SANYO:        proto = ("Sanyo");         break ;
-            case MITSUBISHI:   proto = ("MITSUBISHI");    break ;
-            case SAMSUNG:      proto = ("Samsung");       break ;
-            case LG:           proto = ("LG");            break ;
-            case WHYNTER:      proto = ("Whynter");       break ;
-            // case AIWA_RC_T501: Serial.print("AIWA_RC_T501");  break ;
-            case PANASONIC:    proto = ("PANASONIC");     break ;
-          }
+      { // Grab an IR code
+        // dumpInfo(&results);           // Output the results
+        switch (results1.decode_type) {
+        default:
+        case UNKNOWN:
+          proto = ("UNKNOWN");
+          break;
+        case NEC:
+          proto = ("NEC");
+          break;
+        case SONY:
+          proto = ("Sony");
+          break;
+        case RC5:
+          proto = ("RC5");
+          break;
+        case RC6:
+          proto = ("RC6");
+          break;
+        case DISH:
+          proto = ("DISH");
+          break;
+        case SHARP:
+          proto = ("SHARP");
+          break;
+        case JVC:
+          proto = ("JVC");
+          break;
+        case SANYO:
+          proto = ("Sanyo");
+          break;
+        case MITSUBISHI:
+          proto = ("MITSUBISHI");
+          break;
+        case SAMSUNG:
+          proto = ("Samsung");
+          break;
+        case LG:
+          proto = ("LG");
+          break;
+        case WHYNTER:
+          proto = ("Whynter");
+          break;
+          // case AIWA_RC_T501: Serial.print("AIWA_RC_T501");  break ;
+        case PANASONIC:
+          proto = ("PANASONIC");
+          break;
         }
-        Serial.print("Signal recveived "+ proto+ " " + results1.bits + " " );
-        Serial.println((unsigned long)results1.value, HEX);
+      }
+      Serial.print("Signal recveived " + proto + " " + results1.bits + " ");
+      Serial.println((unsigned long) results1.value, HEX);
 
       irrecv.decode(&results);
     }
